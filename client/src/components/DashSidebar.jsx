@@ -1,39 +1,72 @@
-import { Sidebar } from 'flowbite-react'
-import { HiArrowSmRight, HiUser } from 'react-icons/hi'
-import { useEffect, useState } from 'react'
-import { useLocation, Link } from 'react-router-dom'
+import { Sidebar } from "flowbite-react";
+import { HiArrowSmRight, HiUser } from "react-icons/hi";
+import { useEffect, useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { signoutSuccess } from "../redux/user/userSlice";
+import { useDispatch } from "react-redux";
 
 export default function DashSidebar() {
-  const location = useLocation()
-  const [tab, setTab] = useState('')
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const [tab, setTab] = useState("");
   useEffect(() => {
-    const urlParams = new URLSearchParams(location.search)
-    const tabFromUrl = urlParams.get('tab');
+    const urlParams = new URLSearchParams(location.search);
+    const tabFromUrl = urlParams.get("tab");
     // console.log(tabFromUrl);
-    if(tabFromUrl){
+    if (tabFromUrl) {
       setTab(tabFromUrl);
     }
   }, [location.search]);
+
+  const handleSignout = async () => {
+    try {
+      const res = await fetch("/api/user/signout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          // Include credentials if necessary, for example, if cookies or tokens are used for authentication
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // if using JWT tokens
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.log(data.message || "Failed to sign out");
+      } else {
+        dispatch(signoutSuccess());
+        // Optionally, redirect the user to the login page after signout
+        // window.location.href = "/login";
+      }
+    } catch (error) {
+      console.log("Error during signout:", error.message);
+    }
+  };
+
   return (
-    <Sidebar className='w-full md:w-56 '>
+    <Sidebar className="w-full md:w-56 ">
       <Sidebar.Items>
         <Sidebar.ItemGroup>
-            <Link to='/dashboard?tab=profile'>
-              <Sidebar.Item 
-                active={tab === 'profile'} 
-                icon={HiUser} 
-                label={"User"} 
-                labelColor='dark'
-                as='div'
-              >
-                  Profile
-              </Sidebar.Item>
-            </Link>
-            <Sidebar.Item icon={HiArrowSmRight} className="cursor-pointer">
-                Sign Out
+          <Link to="/dashboard?tab=profile">
+            <Sidebar.Item
+              active={tab === "profile"}
+              icon={HiUser}
+              label={"User"}
+              labelColor="dark"
+              as="div"
+            >
+              Profile
             </Sidebar.Item>
+          </Link>
+          <Sidebar.Item
+            icon={HiArrowSmRight}
+            className="cursor-pointer"
+            onClick={handleSignout}
+          >
+            Sign Out
+          </Sidebar.Item>
         </Sidebar.ItemGroup>
       </Sidebar.Items>
     </Sidebar>
-  )
+  );
 }
