@@ -27,3 +27,16 @@ export const createComment = async (req, res, next) => {
     next(error); // Handle any errors that occur
   }
 };
+
+export const getPostComments = async (req, res, next) => {
+  try {
+    const comments = await Comment.find({ postId: req.params.postId }).sort({
+      createdAt: -1, // Corrected the typo in "createdAt"
+    });
+
+    // Send the comments in the response
+    res.status(200).json(comments);
+  } catch (error) {
+    next(error); // Pass the error to the next middleware
+  }
+};
