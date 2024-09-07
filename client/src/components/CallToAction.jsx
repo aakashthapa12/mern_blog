@@ -17,7 +17,7 @@ export default function CallToAction() {
             target="_blank"
             rel="noopener noreferrer"
           >
-            100 JavaScript Projects
+            100 Nextjs Projects
           </a>
         </Button>
       </div>
