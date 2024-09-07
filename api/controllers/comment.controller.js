@@ -107,3 +107,45 @@ export const deleteComment = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getcomments = async (req, res, next) => {
+  try {
+    // Ensure req.user exists and isAdmin check is valid
+    if (!req.user || !req.user.isAdmin) {
+      return next(errorHandler(403, "You are not allowed to get all comments"));
+    }
+
+    // Parsing query parameters
+    const startIndex = parseInt(req.query.startIndex) || 0;
+    const limit = parseInt(req.query.limit) || 9;
+    const sortDirection = req.query.sort === "desc" ? -1 : 1;
+
+    // Fetching comments with pagination
+    const comments = await Comment.find()
+      .sort({ createdAt: sortDirection })
+      .skip(startIndex)
+      .limit(limit);
+
+    // Counting total comments
+    const totalComments = await Comment.countDocuments();
+
+    // Counting comments from the last month
+    const now = new Date();
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+
+    // Ensure $gte is used correctly
+    const lastMonthComments = await Comment.countDocuments({
+      createdAt: { $gte: oneMonthAgo },
+    });
+
+    // Sending response
+    res.status(200).json({ comments, totalComments, lastMonthComments });
+  } catch (error) {
+    console.error("Error fetching comments: ", error); // Log the error
+    next(error); // Pass error to the error handler middleware
+  }
+};
